@@ -26,7 +26,8 @@ def load_data(messages_filepath, categories_filepath):
 
 def clean_data(df):
     """
-    Cleans the merged message and categories data frame.
+    Cleans the merged message and categories data frame. Converts the category values to binary.
+    If category values are higher than "1", they are assumed as category "1".
 
     Args:
     df (DataFrame): The merged data frame of messages and categories.
@@ -37,11 +38,13 @@ def clean_data(df):
     # Expand the categories column into separate, clearly named columns
     categories = df['categories'].str.split(';', expand=True)
     first_row = categories.iloc[0]
-    category_colnames = first_row.apply(lambda x: x[:-2])
+    category_colnames = first_row.apply(lambda x: x[:-2]).tolist()
     categories.columns = category_colnames
 
-    # Convert category values to just numbers 0 or 1
-    categories = categories.applymap(lambda x: int(x.split('-')[1]))
+    # Convert category values to just numbers 0 or 1, treating 2 as 1
+    for column in categories:
+        categories[column] = categories[column].str[-1].astype(int)
+        categories[column] = categories[column].apply(lambda x: 1 if x >= 1 else 0)
 
     # Replace categories column in df with new category columns
     df.drop('categories', axis=1, inplace=True)
