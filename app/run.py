@@ -27,7 +27,7 @@ def tokenize(text):
     return clean_tokens
 
 # load data
-engine = create_engine('sqlite:///../data/DisasterResponse.db')#YourDatabaseName.db')
+engine = create_engine('sqlite:///../data/DisasterResponse.db')
 df = pd.read_sql_table('DisasterMessages', engine)
 
 # load model
@@ -49,28 +49,48 @@ def index():
     # TODO: Below is an example - modify to extract data for your own visuals
     genre_counts = df.groupby('genre').count()['message']
     genre_names = list(genre_counts.index)
-
+    category_counts = df.iloc[:, 4:].sum().sort_values(ascending=False)
+    category_names = list(category_counts.index)
     # create visuals
     # TODO: Below is an example - modify to create your own visuals
     graphs = [
-        {
-            'data': [
-                Bar(
-                    x=genre_names,
-                    y=genre_counts
-                )
-            ],
-
-            'layout': {
-                'title': 'Distribution of Message Genres',
-                'yaxis': {
-                    'title': "Count"
-                },
-                'xaxis': {
-                    'title': "Genre"
-                }
+    {
+        'data': [
+            Bar(
+                x=genre_names,
+                y=genre_counts
+            )
+        ],
+        'layout': {
+            'title': 'Distribution of Message Genres',
+            'yaxis': {
+                'title': "Count"
+            },
+            'xaxis': {
+                'title': "Genre"
             }
         }
+    },
+    {
+        'data': [
+            Bar(
+                x=category_names,
+                y=category_counts
+            )
+        ],
+        'layout': {
+            'title': 'Distribution of Message Categories',
+            'yaxis': {
+                'title': "Count"
+            },
+            'xaxis': {
+                'xaxis': {
+                    'title': "Category",
+                    'tickangle': -45
+                },
+            }
+        }
+    }
     ]
 
     # encode plotly graphs in JSON
@@ -97,7 +117,6 @@ def go():
         query=query,
         classification_result=classification_results
     )
-
 
 def main():
     app.run(host='0.0.0.0', port=3000, debug=True)
